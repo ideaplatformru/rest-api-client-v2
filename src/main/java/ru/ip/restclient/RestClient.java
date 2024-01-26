@@ -423,7 +423,7 @@ public class RestClient {
      * @param  id         ID записи для выборки
      * @return            полученная запись в виде структуры
      */
-    public Map<String, Object> getRecordById(String tablename, String id) throws IOException {
+    public Map<String, Object> getRecordById(String tablename, Integer id) throws IOException {
         HttpGet Get = new HttpGet(baseUrl + "/json/v2/xapi/entity/"+tablename+"/"+id);
         Get.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         Get.setHeader("X-AUTH", token);

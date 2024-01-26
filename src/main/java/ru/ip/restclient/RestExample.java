@@ -47,6 +47,46 @@ public class RestExample {
         Map<String, Object> updateTestRecord = client.updateRecord(tablename, fieldsUpdate);
         System.out.println(updateTestRecord);
 
+        //Пример вызова метода для обновления записи в указанной таблице tablename
+        //В объекте fieldsUpdate передаем название полей и их новые значения
+        //Обязательно должен быть указан ID записи для обновления (в ключевом поле таблицы) или shortname записи
+        Map<String, Object> fieldsUpdate2 = new HashMap<>();
+        fieldsUpdate2.put("message", "test3");
+        Integer fieldId = 8;
+        Map<String, Object> updateTestRecord2 = client.updateRecordById(tablename, fieldId, fieldsUpdate2);
+        System.out.println(updateTestRecord2);
+
+        //Пример вызова метода для обновления записи в указанной таблице tablename
+        //В объекте fieldsUpdate передаем название полей и их новые значения
+        //Обязательно должен быть указан ID записи для обновления (в ключевом поле таблицы) или shortname записи
+        Map<String, Object> fieldsUpdate3 = new HashMap<>();
+        fieldsUpdate3.put("message", "test4");
+        String shortname = "9e421b83-8fc7-d08c-0a75-c640935a762f";
+        Map<String, Object> updateTestRecord3 = client.updateRecordByShortname(tablename, shortname, fieldsUpdate3);
+        System.out.println(updateTestRecord3);
+
+        //Пример вызова метода для получения метаданных таблицы tablename
+        Map<String, Object> metadataRecord = client.getMetadata(tablename);
+        System.out.println(metadataRecord);
+
+        //Пример вызова метода для получения записи в указанной таблице tablename по ee id
+        Integer fieldToFindId = 8;
+        Map<String, Object> findedRecord = client.getRecordById(tablename, fieldToFindId);
+        System.out.println(findedRecord);
+
+        //Пример вызова метода для получения записи в указанной таблице tablename по ee shortname
+        String shortnameToFind = "9e421b83-8fc7-d08c-0a75-c640935a762f";
+        Map<String, Object> findedRecordByShortname = client.getRecordByShortname(tablename, shortnameToFind);
+        System.out.println(findedRecordByShortname);
+
+        //Пример вызова метода для удаления записи в указанной таблице tablename по ee id
+        Integer fieldToDeleteId = 8;
+        client.deleteRecordById(tablename, fieldToDeleteId);
+
+        //Пример вызова метода для удаления записи в указанной таблице tablename по ee shortname
+        String shortnameToDelete = "9e421b83-8fc7-d08c-0a75-c640935a762f";
+        client.deleteRecordByShortname(tablename, shortnameToDelete);
+
         //Пример вызова метода для массового создания записей в указанной таблице tablename
         //В объектах fields1 и fields2 указываем название полей и значения
         //Объединяем эти два объекта в список dataList
