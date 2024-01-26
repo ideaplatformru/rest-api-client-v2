@@ -5,13 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -19,7 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RestClient {
-    private static final String BASE_URL = "http://localhost:8080";
+
+    private String baseUrl = "http://localhost:8080";
     private static final String TOKEN_VALIDATION_STATUS_AUTHORIZED = "AUTHORIZED";
     private String token;
     private String user;
@@ -30,6 +28,13 @@ public class RestClient {
 
     }
 
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
     public void setUser(String user) {
         this.user = user;
     }
@@ -63,7 +68,7 @@ public class RestClient {
      */
     public void login(String username, String password) throws IOException {
 
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/login");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/login");
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("user", username);
         requestBody.put("password", password);
@@ -90,7 +95,7 @@ public class RestClient {
                     Map<String, Object> tokenMap = (Map) jsonResponse.get("token");
 
                     setToken((String) tokenMap.get("value"));
-                    //System.out.println(token);
+                    //System.out.println(responseString);
                 }
             }
         }
@@ -104,7 +109,7 @@ public class RestClient {
      */
     public Boolean validateToken(String token) throws IOException {
 
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/m/auth/validate");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/m/auth/validate");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("token", token);
@@ -145,7 +150,7 @@ public class RestClient {
      */
     public Boolean logout() throws IOException {
 
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/logout");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/logout");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -172,6 +177,38 @@ public class RestClient {
     }
 
     /**
+     * Получает метаданные таблицы
+     *
+     * @param  tablename  имя таблицы, метаданные которой нужно получить
+     * @return            структура метаданных записи
+     */
+    public Map<String, Object> getMetadata(String tablename) throws IOException {
+        HttpGet httpGet = new HttpGet(baseUrl + "/json/v2/xapi/entity/"+tablename+"/metadata");
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        httpGet.setHeader("X-AUTH", token);
+
+        Map<String, Object> mapResponse = new HashMap<>();
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+             CloseableHttpResponse response = httpClient.execute(httpGet)) {
+
+            HttpEntity responseEntity = response.getEntity();
+            if (responseEntity != null) {
+                String responseString = EntityUtils.toString(responseEntity);
+
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode > 299) {
+                    throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
+                }
+
+                mapResponse = jsonToMap(responseString);
+            }
+        }
+
+        return mapResponse;
+    }
+
+    /**
      * Создает запись в указанной таблице с использованием предоставленных полей.
      *
      * @param  tablename  имя таблицы, в которой создается запись
@@ -179,7 +216,7 @@ public class RestClient {
      * @return            структура созданной записи
      */
     public Map<String, Object> createRecord(String tablename, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/create");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/create");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -201,6 +238,7 @@ public class RestClient {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
                 mapResponse = jsonToMap(responseString);
+                //System.out.println(responseString);
             }
         }
 
@@ -215,7 +253,7 @@ public class RestClient {
      * @return            структура обновленной записи
      */
     public Map<String, Object> updateRecord(String tablename, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/update");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/update");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -237,6 +275,7 @@ public class RestClient {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
                 mapResponse = jsonToMap(responseString);
+                //System.out.println(responseString);
             }
         }
 
@@ -252,7 +291,7 @@ public class RestClient {
      * @return            обновленная запись в виде структуры
      */
     public Map<String, Object> updateRecordById(String tablename, Integer id, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/"+id+"/update");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/"+id+"/update");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -289,7 +328,7 @@ public class RestClient {
      * @return            структура полей и их значений обновленной записи
      */
     public Map<String, Object> updateRecordByShortname(String tablename, String shortname, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/sn/"+shortname+"/update");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/sn/"+shortname+"/update");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -322,10 +361,9 @@ public class RestClient {
      *
      * @param  tablename  имя таблицы, из которой нужно удалить запись
      * @param  id         идентификатор записи, которую нужно удалить
-     * @return            карта, содержащая ответ от операции удаления
      */
-    public Map<String, Object> deleteRecordById(String tablename, Integer id) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/"+id+"/delete");
+    public void deleteRecordById(String tablename, Integer id) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/delete/"+id);
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -342,11 +380,11 @@ public class RestClient {
                 if (statusCode > 299) {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
-                mapResponse = jsonToMap(responseString);
+                //mapResponse = jsonToMap(responseString);
+                //System.out.println(responseString);
             }
         }
 
-        return mapResponse;
     }
 
     /**
@@ -354,10 +392,9 @@ public class RestClient {
      *
      * @param  tablename  имя таблицы, из которой нужно удалить запись
      * @param  shortname  shorname записи, которую нужно удалить
-     * @return            карта, содержащая ответ от операции удаления
      */
-    public Map<String, Object> deleteRecordByShortname(String tablename, String shortname, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/entity/"+tablename+"/sn/"+shortname+"/delete");
+    public void deleteRecordByShortname(String tablename, String shortname) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/sn/"+shortname+"/delete");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -374,7 +411,71 @@ public class RestClient {
                 if (statusCode > 299) {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
+                //mapResponse = jsonToMap(responseString);
+            }
+        }
+    }
+
+    /**
+     * Получает запись из указанной таблице по ее ID.
+     *
+     * @param  tablename  имя таблицы для выборки
+     * @param  id         ID записи для выборки
+     * @return            полученная запись в виде структуры
+     */
+    public Map<String, Object> getRecordById(String tablename, String id) throws IOException {
+        HttpGet Get = new HttpGet(baseUrl + "/json/v2/xapi/entity/"+tablename+"/"+id);
+        Get.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        Get.setHeader("X-AUTH", token);
+
+        Map<String, Object> mapResponse = new HashMap<>();
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+             CloseableHttpResponse response = httpClient.execute(Get)) {
+
+            HttpEntity responseEntity = response.getEntity();
+            if (responseEntity != null) {
+                String responseString = EntityUtils.toString(responseEntity);
+
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode > 299) {
+                    throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
+                }
                 mapResponse = jsonToMap(responseString);
+                //System.out.println(responseString);
+            }
+        }
+
+        return mapResponse;
+    }
+
+    /**
+     * Получает запись из указанной таблице по ее shortname.
+     *
+     * @param  tablename  имя таблицы для выборки
+     * @param  shortname  shortname записи для выборки
+     * @return            полученная запись в виде структуры
+     */
+    public Map<String, Object> getRecordByShortname(String tablename, String shortname) throws IOException {
+        HttpGet Get = new HttpGet(baseUrl + "/json/v2/xapi/entity/"+tablename+"/sn/"+shortname);
+        Get.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        Get.setHeader("X-AUTH", token);
+
+        Map<String, Object> mapResponse = new HashMap<>();
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+             CloseableHttpResponse response = httpClient.execute(Get)) {
+
+            HttpEntity responseEntity = response.getEntity();
+            if (responseEntity != null) {
+                String responseString = EntityUtils.toString(responseEntity);
+
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode > 299) {
+                    throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
+                }
+                mapResponse = jsonToMap(responseString);
+                //System.out.println(responseString);
             }
         }
 
@@ -391,7 +492,7 @@ public class RestClient {
      * Список errors содержит список записей, которые создать не удалось, и причинами ошибки
      */
     public BatchResult batchCreateRecords(String tablename, List<Map<String, Object>> dataList) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/batch/"+tablename+"/create");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/batch/"+tablename+"/create");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -413,6 +514,7 @@ public class RestClient {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
                 mapResponse = jsonToMap(responseString, new TypeReference<BatchResult>() {});
+                //System.out.println(responseString);
             }
         }
 
@@ -429,7 +531,7 @@ public class RestClient {
      * Список errors содержит список записей, которые обновить не удалось, и причинами ошибки
      */
     public BatchResult batchUpdateRecords(String tablename, List<Map<String, Object>> dataList) throws IOException {
-        HttpPost httpPost = new HttpPost(BASE_URL + "/json/v2/xapi/batch/"+tablename+"/update");
+        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/batch/"+tablename+"/update");
         httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         httpPost.setHeader("X-AUTH", token);
 
@@ -451,6 +553,7 @@ public class RestClient {
                     throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
                 }
                 mapResponse = jsonToMap(responseString, new TypeReference<BatchResult>() {});
+                //System.out.println(responseString);
             }
         }
 

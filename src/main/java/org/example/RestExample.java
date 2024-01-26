@@ -11,6 +11,8 @@ public class RestExample {
 
         //Создаем объект класса RestClient
         RestClient client = new RestClient();
+        //Задаем адрес сервера для отправки запросов
+        client.setBaseUrl("http://localhost:8080");
         client.setUser("user");
         client.setPassword("password");
 
@@ -37,11 +39,12 @@ public class RestExample {
         System.out.println(createTestRecord);
 
         //Пример вызова метода для обновления записи в указанной таблице tablename
-        //В объекте fields передаем название полей и их новые значения
+        //В объекте fieldsUpdate передаем название полей и их новые значения
         //Обязательно должен быть указан ID записи для обновления (в ключевом поле таблицы) или shortname записи
-        fields.put("testrevaid", 8);
-        fields.put("message", "test2");
-        Map<String, Object> updateTestRecord = client.updateRecord(tablename, fields);
+        Map<String, Object> fieldsUpdate = new HashMap<>();
+        fieldsUpdate.put("testrevaid", 8);
+        fieldsUpdate.put("message", "test2");
+        Map<String, Object> updateTestRecord = client.updateRecord(tablename, fieldsUpdate);
         System.out.println(updateTestRecord);
 
         //Пример вызова метода для массового создания записей в указанной таблице tablename
