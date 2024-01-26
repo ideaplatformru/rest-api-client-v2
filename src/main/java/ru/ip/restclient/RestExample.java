@@ -1,4 +1,4 @@
-package org.example;
+package ru.ip.restclient;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package org.example;
+package ru.ip.restclient;
 
 import java.util.List;
 import java.util.Map;

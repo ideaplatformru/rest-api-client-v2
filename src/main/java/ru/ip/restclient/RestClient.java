@@ -1,4 +1,4 @@
-package org.example;
+package ru.ip.restclient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
