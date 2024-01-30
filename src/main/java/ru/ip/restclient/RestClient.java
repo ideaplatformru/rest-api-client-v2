@@ -24,31 +24,8 @@ public class RestClient {
     private String password;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static void main(String[] args) {
-
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
+    public RestClient(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getUser() {
-        return this.user;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPassword() {
-        return this.password;
     }
 
     private void setToken(String token) {
@@ -245,42 +222,6 @@ public class RestClient {
         return mapResponse;
     }
 
-    /**
-     * Обновляет запись в указанной таблице с использованием предоставленных полей.
-     *
-     * @param  tablename  имя таблицы, в которой создается запись
-     * @param  fields     структура, содержащая имена полей и их соответствующие значения
-     * @return            структура обновленной записи
-     */
-    public Map<String, Object> updateRecord(String tablename, Map<String, Object> fields) throws IOException {
-        HttpPost httpPost = new HttpPost(baseUrl + "/json/v2/xapi/entity/"+tablename+"/update");
-        httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-        httpPost.setHeader("X-AUTH", token);
-
-        String jsonBody = mapToJson(fields);
-        StringEntity entity = new StringEntity(jsonBody, StandardCharsets.UTF_8);
-        httpPost.setEntity(entity);
-
-        Map<String, Object> mapResponse = new HashMap<>();
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(httpPost)) {
-
-            HttpEntity responseEntity = response.getEntity();
-            if (responseEntity != null) {
-                String responseString = EntityUtils.toString(responseEntity);
-
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode > 299) {
-                    throw new RuntimeException("Failed with HTTP error code : " + statusCode + ", error message : " + responseString);
-                }
-                mapResponse = jsonToMap(responseString);
-                //System.out.println(responseString);
-            }
-        }
-
-        return mapResponse;
-    }
 
     /**
      * Обновляет запись в указанной таблице по ее ID.

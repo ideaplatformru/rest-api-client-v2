@@ -10,11 +10,8 @@ public class RestExample {
     public static void main(String[] args) throws Exception {
 
         //Создаем объект класса RestClient
-        RestClient client = new RestClient();
-        //Задаем адрес сервера для отправки запросов
-        client.setBaseUrl("http://localhost:8080");
-        client.setUser("user");
-        client.setPassword("password");
+        RestClient client = new RestClient("http://localhost:8080");
+
 
         //Пример вызова метода для авторизации, в качестве параметра передаем имя пользователя и пароль
         client.login("user", "password");
@@ -38,14 +35,6 @@ public class RestExample {
         Map<String, Object> createTestRecord = client.createRecord(tablename, fields);
         System.out.println(createTestRecord);
 
-        //Пример вызова метода для обновления записи в указанной таблице tablename
-        //В объекте fieldsUpdate передаем название полей и их новые значения
-        //Обязательно должен быть указан ID записи для обновления (в ключевом поле таблицы) или shortname записи
-        Map<String, Object> fieldsUpdate = new HashMap<>();
-        fieldsUpdate.put("testrevaid", 8);
-        fieldsUpdate.put("message", "test2");
-        Map<String, Object> updateTestRecord = client.updateRecord(tablename, fieldsUpdate);
-        System.out.println(updateTestRecord);
 
         //Пример вызова метода для обновления записи в указанной таблице tablename
         //В объекте fieldsUpdate передаем название полей и их новые значения
